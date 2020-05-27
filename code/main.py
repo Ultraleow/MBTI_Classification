@@ -13,7 +13,8 @@ csv_path=parent_floder_path+r"\cachedir\mbti_1.csv"
 
 data=pandas.read_csv(csv_path)
 #print(data)
-
+#import nltk
+#nltk.download('wordnet')
 def word_processing(series):
     # Lemmatizer | Stemmatizer
     stemmer = PorterStemmer()
@@ -24,8 +25,6 @@ def word_processing(series):
     for i in range(len(series)):
         OnePost=series[i]
         # One post
-        # List all urls
-        urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', OnePost)
 
         # Remove urls
         temp = re.sub('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', 'link', OnePost)
@@ -35,9 +34,11 @@ def word_processing(series):
 
         # Remove spaces > 1
         temp = re.sub(' +', ' ', temp).lower()
-        #print(len(OnePost))
-        #print(len(temp))
-        #print("stop")
+
+        #remove stop word
+        temp = " ".join([lemmatiser.lemmatize(w) for w in temp.split(' ') if w not in cachedStopWords])
+        if i%500==0:
+            print(i,"|||",len(series))
         series[i]=temp
     return series
 def word_processing_1(series):
