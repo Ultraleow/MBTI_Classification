@@ -14,30 +14,58 @@ csv_path=parent_floder_path+r"\cachedir\mbti_1.csv"
 data=pandas.read_csv(csv_path)
 #print(data)
 
-def word_processing(sent):
+def word_processing(series):
     # Lemmatizer | Stemmatizer
     stemmer = PorterStemmer()
     lemmatiser = WordNetLemmatizer()
 
     # Cache the stop words for speed 
     cachedStopWords = stopwords.words("english")
+    for i in range(len(series)):
+        OnePost=series[i]
+        # One post
+        # List all urls
+        urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', OnePost)
 
+        # Remove urls
+        temp = re.sub('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', 'link', OnePost)
+
+        # Keep only words
+        temp = re.sub("[^a-zA-Z]", " ", temp)
+
+        # Remove spaces > 1
+        temp = re.sub(' +', ' ', temp).lower()
+        #print(len(OnePost))
+        #print(len(temp))
+        #print("stop")
+        series[i]=temp
+    return series
+def word_processing_1(series):
+    # Lemmatizer | Stemmatizer
+    stemmer = PorterStemmer()
+    lemmatiser = WordNetLemmatizer()
+
+    # Cache the stop words for speed 
+    cachedStopWords = stopwords.words("english")
     # One post
-    OnePost=sent
-
+    post=series
     # List all urls
-    urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', OnePost)
-
+    print(len(post))
+    post = post.str.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
+    print(len(post))
     # Remove urls
-    temp = re.sub('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', 'link', OnePost)
-
+    post = post.astype(str).str.replace('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', 'link')
+    print(len(post))
     # Keep only words
-    temp = re.sub("[^a-zA-Z]", " ", temp)
-
+    post = post.astype(str).str.replace("[^a-zA-Z]", " ")
+    print(len(post))
     # Remove spaces > 1
-    temp = re.sub(' +', ' ', temp).lower()
-    return temp
-
+    post = post.str.match(r'^[a-z]+$')
+    print(len(post))
+    #print(type(OnePost))
+    #print(type(temp))
+    #series.str.replace(OnePost,temp)
+    return post
 def MBTI_to_binary(str):
     """
     introversion=1  : extraversion=0
@@ -71,13 +99,11 @@ def MBTI_to_binary(str):
             elif char=='P':
                 MBTI_binary.append(0)
     return MBTI_binary
-
 def split_data_sentences(str):
     input=str.split("|||")
     while len(input)!=50:
         input.append("")
     return (input)
-
 def split_raw_data_for_ml(dataframe):
     total_data=len(data.index)
     train, test = train_test_split(dataframe, test_size=0.4)
@@ -97,11 +123,15 @@ def split_raw_data_for_ml(dataframe):
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, TfidfTransformer
 
 vectorizer = TfidfVectorizer()
+#data.iloc[6,1].str.replace("2","2")
+print(data.columns[1])
 df = data[data.columns[1]]
-#print(df)
-#X = vectorizer.fit_transform([data.iloc[6,1],data.iloc[7,1]])
-X = vectorizer.fit_transform(df)
-print(vectorizer.get_feature_names())
+print((df))
+new_df=word_processing(df)
+print(new_df)
+
+X = vectorizer.fit_transform(new_df)
+print(len(vectorizer.get_feature_names()))
 #print(MBTI_to_binary("ESFP"))
 #print(len(data.index))
 #split_raw_data_for_ml(data)
